@@ -1715,12 +1715,12 @@ path line."
   "Hide the AVFS virtual filesystem root (if any) on the path line."
   (when sunrise-avfs-root
     (let ((start nil) (end nil)
-          (next (search-forward sunrise-avfs-root (point-at-eol) t)))
+          (next (search-forward sunrise-avfs-root (line-end-position) t)))
       (when next
         (setq start (- next (length sunrise-avfs-root))))
       (while next
         (setq end (point)
-              next (search-forward sunrise-avfs-root (point-at-eol) t)))
+              next (search-forward sunrise-avfs-root (line-end-position) t)))
       (when end
         (put-text-property start end 'invisible 'sunrise)))))
 
@@ -1979,7 +1979,7 @@ FILENAME is the filename to visit."
   (interactive)
   (unless filename
     (if (eq 1 (line-number-at-pos)) ;; <- Click or Enter on path line.
-        (let* ((path (buffer-substring (point) (point-at-eol)))
+        (let* ((path (buffer-substring (point) (line-end-position)))
                (levels (1- (length (split-string path "/")))))
           (if (< 0 levels)
               (sunrise-dired-prev-subdir levels)
@@ -2828,9 +2828,9 @@ order than when sorted alphabetically by name."
   (let ((opt (string-to-char option)) (inhibit-read-only t) (beg) (end))
     (cl-case opt
       (?X (sunrise-end-of-buffer)
-          (setq end (point-at-eol))
+          (setq end (line-end-position))
           (sunrise-beginning-of-buffer)
-          (setq beg (point-at-bol))
+          (setq beg (line-beginning-position))
           (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
       (?t (sunrise-sort-by-operation
            (lambda (x) (sunrise-attribute-sort-op 5 t x)) "TIME"))
@@ -2865,9 +2865,9 @@ and `sunrise-attribute-sort-op' for examples of OPERATIONs."
       (save-excursion
         (save-restriction
           (sunrise-end-of-buffer)
-          (setq end (point-at-eol))
+          (setq end (line-end-position))
           (sunrise-beginning-of-buffer)
-          (setq beg (point-at-bol))
+          (setq beg (line-beginning-position))
           (narrow-to-region beg end)
           (sort-reorder-buffer sort-lists old)))
       (when messages (message "Reordering buffer... Done")))
@@ -3563,7 +3563,7 @@ Otherwise return nil."
                   file (sunrise-chop ?/ file))
             (insert-directory file sunrise-virtual-listing-switches))
           fileset)
-    (sunrise-display-attributes beg (point-at-eol) sunrise-show-file-attributes)
+    (sunrise-display-attributes beg (line-end-position) sunrise-show-file-attributes)
     (unwind-protect
         (delete-region (point) (line-end-position))
       (progn
@@ -3953,7 +3953,7 @@ partial process output between consecutive batches of data.")
                    (insert-char 32 2)
                    (insert-directory x sunrise-virtual-listing-switches nil nil)))
                entries)
-         (sunrise-display-attributes beg (point-at-eol) sunrise-show-file-attributes)))))
+         (sunrise-display-attributes beg (line-end-position) sunrise-show-file-attributes)))))
 
 (defun sunrise-as-sentinel (as-buffer as-command)
   "Return a sentinel function for an async search process.
@@ -4132,12 +4132,12 @@ pane."
                   (when (and start end)
                     (let ((old (get-text-property start 'invisible)))
                       (put-text-property
-                       (point-at-bol) (1+ (point-at-eol)) 'invisible
+                       (line-beginning-position) (1+ (line-end-position)) 'invisible
                        (if (string-match-p
                             regex (buffer-substring-no-properties start end))
                            (cl-set-difference old '(sunrise-narrow))
                          (cl-union old '(sunrise-narrow)))))))
-                (goto-char (point-at-bol))
+                (goto-char (line-beginning-position))
                 (forward-line 1))))
           (setq next-char (read-next filter)))))))
 
