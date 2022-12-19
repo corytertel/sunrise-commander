@@ -455,6 +455,7 @@ this flag to t."
   :type 'hook
   :options '(auto-insert))
 
+;;;###autoload
 (defcustom sunrise-quit-hook nil
   "List of functions to be called after the Sunrise panes are hidden."
   :group 'sunrise
@@ -501,6 +502,7 @@ support any options."
 (defvar sunrise-right-buffer nil
   "Dired buffer for the right window.")
 
+;;;###autoload
 (defvar sunrise-current-frame nil
   "The frame Sunrise is active on (if any).")
 
@@ -543,6 +545,7 @@ element that is immediately beneath the top of the stack.")
 (defvar sunrise-dired-directory ""
   "Directory inside which `sunrise-mode' is currently active.")
 
+;;;###autoload
 (defvar sunrise-start-message
   "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
   "Message to display when Sunrise is started.")
@@ -904,7 +907,7 @@ Uses `save-selected-window' internally."
   "Execute FORM in a new buffer, after killing the previous one."
   `(let ((dispose nil))
      (unless (or (not (or dired-directory (eq major-mode 'sunrise-tree-mode)))
-                 (eq sunrise-left-buffer sunrise-right-buffer))
+                (eq sunrise-left-buffer sunrise-right-buffer))
        (setq dispose (current-buffer)))
      ,form
      (setq sunrise-this-directory default-directory)
@@ -929,7 +932,7 @@ Uses `save-selected-window' internally."
 (defun sunrise--directory-windows-p (window1 window2)
   "Return t if WINDOW1 and WINDOW2 are two Sunrise directory panes."
   (and (eq 'pane (sunrise-classify-window window1))
-       (eq 'pane (sunrise-classify-window window2))))
+     (eq 'pane (sunrise-classify-window window2))))
 
 (defun sunrise--analyze-frame-or-nil (&optional frame)
   "Return the Sunrise Commander state in FRAME.
@@ -950,30 +953,30 @@ which directories the user is browsing."
     (cl-ecase sunrise-window-split-style
       (horizontal
        (and (= 2 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (bot (window-next-sibling top)))
-              (and (= 2 (window-child-count top))
-                   (let* ((top-l (window-left-child top))
-                          (top-r (window-right top-l)))
-                     (and (sunrise--directory-windows-p top-l top-r)
-                          (window-live-p bot)
-                          (list top-l top-r bot)))))))
+          (let* ((top (window-top-child root))
+                 (bot (window-next-sibling top)))
+            (and (= 2 (window-child-count top))
+               (let* ((top-l (window-left-child top))
+                      (top-r (window-right top-l)))
+                 (and (sunrise--directory-windows-p top-l top-r)
+                    (window-live-p bot)
+                    (list top-l top-r bot)))))))
       (vertical
        (and (= 3 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (mid (window-next-sibling top))
-                   (bot (window-next-sibling mid)))
-              (and (sunrise--directory-windows-p top mid)
-                   (window-live-p bot)
-                   (list top mid bot)))))
+          (let* ((top (window-top-child root))
+                 (mid (window-next-sibling top))
+                 (bot (window-next-sibling mid)))
+            (and (sunrise--directory-windows-p top mid)
+               (window-live-p bot)
+               (list top mid bot)))))
       (top
        (and (= 2 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (bot (window-next-sibling top)))
-              (and (eq 'pane (sunrise-classify-window
-                              (window-top-child root)))
-                   (window-live-p bot)
-                   (list top nil bot))))))))
+          (let* ((top (window-top-child root))
+                 (bot (window-next-sibling top)))
+            (and (eq 'pane (sunrise-classify-window
+                          (window-top-child root)))
+               (window-live-p bot)
+               (list top nil bot))))))))
 
 (defun sunrise--analyze-frame (&optional frame)
   "Helper to analyze Sunrise windows in FRAME."
@@ -991,6 +994,7 @@ which directories the user is browsing."
       (sunrise--analyze-frame frame)
     right-window))
 
+;;;###autoload
 (defun sunrise-running-p (&optional frame)
   "Return t if the Sunrise Commander is being displayed in FRAME.
 
@@ -1385,6 +1389,7 @@ Set SYMBOL to VALUE whenever the option is set."
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
+;;;###autoload
 (defun sunrise-show (&optional left-directory right-directory filename)
   "Ensure the Sunrise Commander is shown with the given directories.
 
@@ -1398,10 +1403,10 @@ If FILENAME is non-nil, it is the basename of a file to focus."
   (message "Starting Sunrise Commander...")
   (let ((msg nil))
     (when (or filename
-              (sunrise-ensure-windows
-               (selected-frame)
-               left-directory
-               right-directory))
+             (sunrise-ensure-windows
+              (selected-frame)
+              left-directory
+              right-directory))
       (setq msg sunrise-start-message))
     (when filename
       (condition-case err
@@ -1412,6 +1417,7 @@ If FILENAME is non-nil, it is the basename of a file to focus."
     (hl-line-mode 1)
     (message "%s" msg)))
 
+;;;###autoload
 (defun sunrise-toggle ()
   "Show or hide the Sunrise Commander."
   (interactive)
@@ -1573,6 +1579,7 @@ buffer or window."
 (defun sunrise--make-directory-buffer (directory)
   (dired directory))
 
+;;;###autoload
 (defun sunrise-ensure-windows (frame a-directory b-directory)
   "Set up the Sunrise window configuration (two windows in `sunrise-mode').
 
@@ -1593,7 +1600,7 @@ LEFT-DIRECTORY and RIGHT-DIRECTORY, if non-nil, are the directories to show."
                   (t
                    (if (sunrise--window-top-left-p window)
                        (setq a-buffer buffer)
-                       (setq b-buffer buffer)))))
+                     (setq b-buffer buffer)))))
           (sunrise-switch-to-nonpane-buffer)
           (sunrise--set-frame-plist
            frame
@@ -1604,10 +1611,10 @@ LEFT-DIRECTORY and RIGHT-DIRECTORY, if non-nil, are the directories to show."
           (sunrise-select-viewer-window)
           (delete-other-windows)
           (unless (and sunrise-panes-height
-                       (< sunrise-panes-height (frame-height)))
+                     (< sunrise-panes-height (frame-height)))
             (setq sunrise-panes-height (sunrise-get-panes-size)))
           (when (and (<= sunrise-panes-height (* 2 window-min-height))
-                     (eq sunrise-window-split-style 'vertical))
+                   (eq sunrise-window-split-style 'vertical))
             (setq sunrise-panes-height (* 2 window-min-height)))
           (let ((root (selected-window)))
             (setq view-window (split-window root sunrise-panes-height))
@@ -1630,7 +1637,7 @@ LEFT-DIRECTORY and RIGHT-DIRECTORY, if non-nil, are the directories to show."
 
           (if (buffer-live-p other-window-scroll-buffer)
               (switch-to-buffer other-window-scroll-buffer)
-              (sunrise-switch-to-nonpane-buffer)))))
+            (sunrise-switch-to-nonpane-buffer)))))
 
     ;; TODO: The left and right directory should not be tracked variables.
     ;; That's brittle. We should use a function to infer them each time.
@@ -1650,11 +1657,12 @@ LEFT-DIRECTORY and RIGHT-DIRECTORY, if non-nil, are the directories to show."
     (while (and
             start
             (or (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-                (memq (current-buffer) (list sunrise-left-buffer sunrise-right-buffer))))
+               (memq (current-buffer) (list sunrise-left-buffer sunrise-right-buffer))))
       (bury-buffer)
       (when (eq start (current-buffer))
         (setq start nil)))))
 
+;;;###autoload
 (defun sunrise-restore-prior-configuration ()
   "Restore configuration (if any) from `sunrise-prior-window-configuration'.
 
@@ -1675,26 +1683,27 @@ Return t if a configuration to restore could be found, nil otherwise."
                                       (window-height left-window)))
           (setq sunrise-windows-locked nil))
         (and sunrise-windows-locked
-             (not sunrise-ediff-on)
-             (not (eq sunrise-window-split-style 'vertical))
-             (sunrise-save-selected-window
-              (select-window left-window)
-              (let ((sunrise-panes-height
-                     (or sunrise-panes-height (window-height))))
-                (enlarge-window (- sunrise-panes-height (window-height))))
-              (scroll-right)
-              (select-window right-window)
-              (scroll-right)))))))
+           (not sunrise-ediff-on)
+           (not (eq sunrise-window-split-style 'vertical))
+           (sunrise-save-selected-window
+            (select-window left-window)
+            (let ((sunrise-panes-height
+                   (or sunrise-panes-height (window-height))))
+              (enlarge-window (- sunrise-panes-height (window-height))))
+            (scroll-right)
+            (select-window right-window)
+            (scroll-right)))))))
 
 ;; This keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions 'sunrise-lock-window)
 
+;;;###autoload
 (defun sunrise-highlight(&optional face)
   "Set up the path line in the current buffer.
 With optional FACE, register this face as the current face to display the active
 path line."
   (when (and (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-             (not sunrise-inhibit-highlight))
+           (not sunrise-inhibit-highlight))
     (let ((inhibit-read-only t))
       (save-excursion
         (goto-char (point-min))
@@ -1729,15 +1738,15 @@ path line."
   (let ((dired-marker-char ?!))
     (while (search-forward-regexp dired-re-sym nil t)
       (unless (or (not (eq 32 (char-after (line-beginning-position))))
-                  (file-exists-p (dired-get-filename)))
+                 (file-exists-p (dired-get-filename)))
         (dired-mark 1)))))
 
 (defsubst sunrise-invalid-overlayp ()
   "Test for invalidity of the current buffer's graphical path line overlay.
 Returns t if the overlay is no longer valid and should be replaced."
   (or (not (overlayp sunrise-current-window-overlay))
-      (eq (overlay-start sunrise-current-window-overlay)
-          (overlay-end sunrise-current-window-overlay))))
+     (eq (overlay-start sunrise-current-window-overlay)
+         (overlay-end sunrise-current-window-overlay))))
 
 (defun sunrise-graphical-highlight (&optional face)
   "Set up the graphical path line in the current buffer.
@@ -1774,14 +1783,15 @@ If FACE is non-nil, it is added to `sunrise-current-path-faces'."
   "Set up the graphical path line in the passive pane.
 With optional argument REVERT, executes `revert-buffer' on the passive buffer."
   (unless (or (not (buffer-live-p (sunrise-other-buffer)))
-              (eq sunrise-left-buffer sunrise-right-buffer))
+             (eq sunrise-left-buffer sunrise-right-buffer))
     (with-current-buffer (sunrise-other-buffer)
       (when sunrise-current-window-overlay
         (delete-overlay sunrise-current-window-overlay))
       (when (and revert
-                 (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode)))
+               (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode)))
         (revert-buffer)))))
 
+;;;###autoload
 (defun sunrise-quit (&optional norestore)
   "Quit Sunrise and restore Emacs to the previous state.
 
@@ -1792,22 +1802,23 @@ the state it was in before Sunrise was entered. Otherwise put the
 Emacs window configuration into a default state."
   (interactive)
   (and (sunrise-running-p)
-       (progn (setq sunrise-current-frame nil)
-              (sunrise-save-directories)
-              (sunrise-save-panes-width)
-              (when (or norestore (not (sunrise-restore-prior-configuration)))
-                (sunrise-select-viewer-window)
-                (delete-other-windows))
-              (sunrise-bury-panes)
-              (message "All life leaps out to greet the light...")
-              (run-hooks 'sunrise-quit-hook)
-              t)))
+     (progn (setq sunrise-current-frame nil)
+            (sunrise-save-directories)
+            (sunrise-save-panes-width)
+            (when (or norestore (not (sunrise-restore-prior-configuration)))
+              (sunrise-select-viewer-window)
+              (delete-other-windows))
+            (sunrise-bury-panes)
+            (message "All life leaps out to greet the light...")
+            (run-hooks 'sunrise-quit-hook)
+            t)))
 
 (add-hook 'delete-frame-functions
           (lambda (frame)
             (when (and (sunrise-running-p) (eq frame sunrise-current-frame))
               (sunrise-quit))))
 
+;;;###autoload
 (defun sunrise-save-directories ()
   "Save current directories in the panes to use them at the next startup."
   (cl-destructuring-bind (left-window right-window _viewer-window)
@@ -1824,12 +1835,14 @@ Emacs window configuration into a default state."
           (setq sunrise-right-directory default-directory)
           (setq sunrise-right-buffer (current-buffer)))))))
 
+;;;###autoload
 (defun sunrise-bury-panes ()
   "Send both pane buffers to the end of the `buffer-list'."
   (mapc (lambda (x)
           (bury-buffer (symbol-value (sunrise-symbol x 'buffer))))
         '(left right)))
 
+;;;###autoload
 (defun sunrise-save-panes-width ()
   "Save the width of the panes to use them at the next startup."
   (unless sunrise-selected-window-width
@@ -2345,8 +2358,8 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 NOSELECT is passed to `dired-simultaneous-find-file'."
   (interactive "P")
   (let* ((files (delq nil (mapcar (lambda (x)
-                                    (and (file-regular-p x) x))
-                                  (dired-get-marked-files)))))
+                                  (and (file-regular-p x) x))
+                                (dired-get-marked-files)))))
     (unless files
       (error "Sunrise: no regular files to open"))
     (unless noselect (sunrise-quit))
@@ -2358,8 +2371,8 @@ NOSELECT is passed to `dired-simultaneous-find-file'."
 (defun sunrise-detect-switch ()
   "Detect Sunrise pane switching and update tracking state accordingly."
   (when (and (sunrise-running-p)
-             (not sunrise-inhibit-switch)
-             (eq (selected-window) (sunrise-other-window)))
+           (not sunrise-inhibit-switch)
+           (eq (selected-window) (sunrise-other-window)))
     (let ((there sunrise-this-directory))
       (setq sunrise-selected-window (sunrise-other-side)
             sunrise-selected-window-width nil
@@ -2411,7 +2424,7 @@ custom variable (which see) has not been set to nil."
 (defun sunrise-viewer-window ()
   "Return an active window that can be used as the viewer."
   (if (or (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-          (sunrise-directory-window-p (selected-window)))
+         (sunrise-directory-window-p (selected-window)))
       (let ((current-window (selected-window)) (target-window))
         (dotimes (_times 2)
           (setq current-window (next-window current-window))
@@ -2420,6 +2433,7 @@ custom variable (which see) has not been set to nil."
         target-window)
     (selected-window)))
 
+;;;###autoload
 (defun sunrise-select-viewer-window (&optional force-setup)
   "Select a window that is not a Sunrise pane.
 If no suitable active window can be found and FORCE-SETUP is set,
@@ -2454,10 +2468,11 @@ calls the function `sunrise-setup-windows' and tries once again."
   (re-search-backward directory-listing-before-filename-regexp)
   (dired-next-line 0))
 
+;;;###autoload
 (defun sunrise-focus-filename (filename)
   "Try to select FILENAME in the current buffer."
   (when (and dired-omit-mode
-             (string-match (dired-omit-regexp) filename))
+           (string-match (dired-omit-regexp) filename))
     (dired-omit-mode -1))
   (let ((sunrise-inhibit-highlight t)
         (expr (sunrise-chop ?/ filename)))
